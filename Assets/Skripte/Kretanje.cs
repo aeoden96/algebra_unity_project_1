@@ -113,6 +113,8 @@ public class Kretanje : MonoBehaviour
         {
             dozvoliKretanje = false;
 
+            //vrtiSeUKrug = true;
+
             Debug.Log("Totalka!");
         }
 
