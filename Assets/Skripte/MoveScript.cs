@@ -1,24 +1,33 @@
 using System;
+using TMPro;
 using UnityEngine;
 
-public class Kretanje : MonoBehaviour
+public class MoveScript : MonoBehaviour
 {
 
     [SerializeField]
     float brzinaKretanja = 5f;
-    bool dozvoliKretanje = true;
-
-
 
     public float brzinaRotiranja = 100f;
     public bool vrtiSeUKrug = false;
     public float zdravlje = 100f;
+    public bool dozvoliKretanje = true;
+
+    //Trenutna brzina kretanja vozila
+    Vector2 trenutnaBrzina = Vector2.zero;
+    public float maxismalnaBrzina = 5f;
+    //Brzina kojom se vozilo usporava kada se ne drži tipka
+    public float usporavanje = 5f;
+    //brzina kojom se vozilo ubrzava prema maksimalnoj brzini
+    public float akceleracija = 10f;
+
+    Rigidbody2D rb;
 
     Stanje stanje = Stanje.Neaktivno;
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
         stanje = Stanje.Aktivno;
-
     }
     // Update is called once per frame
     void Update()
@@ -34,6 +43,10 @@ public class Kretanje : MonoBehaviour
             Pomicanje();
             Rotiraj();
         }
+
+
+
+
 
     }
     bool VoziUKrug()
@@ -52,24 +65,61 @@ public class Kretanje : MonoBehaviour
         return true;
 
     }
+
+
+
     void Pomicanje()
     {
+        //Inicijalizacija ulaza
+        float ulaz = 0f;
+
+        //prvovjera pritisnutih tipki za naprijed i natrag
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
-            transform.Translate(Vector2.up * brzinaKretanja * Time.deltaTime);
+            ulaz += 1f;
         }
         if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
-            transform.Translate(Vector2.down * brzinaKretanja * Time.deltaTime);
+            ulaz -= 1f;
         }
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+
+        //Ako se pritisne neka od tipki
+        if (ulaz != 0)
         {
-            transform.Translate(Vector2.left * brzinaKretanja * Time.deltaTime);
+            //Smjer gibanja ovisi o trenutnoj rotaciji objekta
+            Vector2 smjer = transform.up * ulaz;
+            //Postepeno ubrzavanje do ciljne brzine
+            trenutnaBrzina = Vector2.MoveTowards(trenutnaBrzina, smjer * maxismalnaBrzina, akceleracija * Time.deltaTime);
+
         }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        else
         {
-            transform.Translate(Vector2.right * brzinaKretanja * Time.deltaTime);
+            //Ako se ne drži tipka/gas, usporavanje prema mirovanju
+            trenutnaBrzina = Vector2.MoveTowards(trenutnaBrzina, Vector2.zero, usporavanje * Time.deltaTime);
+
         }
+
+
+        rb.velocity = trenutnaBrzina;
+
+        #region Stara verzija kretanja
+        //if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+        //{
+        //    transform.Translate(Vector2.up * brzinaKretanja * Time.deltaTime);
+        //}
+        //if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+        //{
+        //    transform.Translate(Vector2.down * brzinaKretanja * Time.deltaTime);
+        //}
+        //if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        //{
+        //    transform.Translate(Vector2.left * brzinaKretanja * Time.deltaTime);
+        //}
+        //if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        //{
+        //    transform.Translate(Vector2.right * brzinaKretanja * Time.deltaTime);
+        //}
+        #endregion
     }
     void Rotiraj()
     {
@@ -102,7 +152,7 @@ public class Kretanje : MonoBehaviour
         var preprekaSkripta = collision.gameObject.GetComponent<PreprekaSkripta>();
         var faktorStete = preprekaSkripta.faktorStete;
 
-        if(zdravlje < 1)
+        if (zdravlje < 1)
         {
             zdravlje = 1;
         }
@@ -114,7 +164,6 @@ public class Kretanje : MonoBehaviour
             dozvoliKretanje = false;
 
             //vrtiSeUKrug = true;
-
             Debug.Log("Totalka!");
         }
 
