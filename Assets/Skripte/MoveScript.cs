@@ -165,7 +165,7 @@ public class MoveScript : MonoBehaviour
         {
             ulaz -= 1f;
         }
-
+        #endregion
         if (trenutnaBrzina.magnitude > 0.1f)
         {
 
@@ -193,7 +193,7 @@ public class MoveScript : MonoBehaviour
             trenutnaRotBrzina = 0f;
         }
 
-        #endregion
+  
 
 
         #region Stara verzija rotacije
