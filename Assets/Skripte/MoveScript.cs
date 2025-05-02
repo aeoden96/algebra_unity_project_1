@@ -12,12 +12,16 @@ public class MoveScript : MonoBehaviour
     public bool vrtiSeUKrug = false;
     public float zdravlje = 100f;
     public bool dozvoliKretanje = true;
+    public int brojUdaraca = 0;
+
 
     public float trenutnaRotBrzina = 0f;
     public float maxRotacijskaBrzina = 150f;
     public float ubrzanjeRotacije = 300f;
     public float usporavanjeRotacije = 200f;
     public float nagloUsporavanje = 25f;
+
+
 
 
     //Trenutna brzina kretanja vozila
@@ -233,6 +237,8 @@ public class MoveScript : MonoBehaviour
         }
 
         zdravlje -= 10f * faktorStete;
+        brojUdaraca++; 
+
 
         if (zdravlje <= 0)
         {

@@ -3,6 +3,9 @@
 public class CameraFollow : MonoBehaviour
 {
     public GameObject targetObject; // Objekt koji pratimo
+    private MoveScript targetScript; // Referenca na MoveScript
+
+
 
     [Tooltip("Orthographic size kada auto miruje (bliže)")]
     public float minZoom = 3f;
@@ -16,13 +19,29 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("Trajanje prijelaza zooma (koristi SmoothDamp)")]
     public float zoomSmoothTime = 0.2f;
 
+    [Tooltip("Aktivira lagani shake efekt kamere")]
+    public bool shakeCamera = false;
+
+    [Tooltip("Trajanje shake efekta u sekundama")]
+    public float shakeDuration = 0.3f;
+
+    [Tooltip("Intenzitet pomicanja kamere pri shake efektu")]
+    public float shakeMagnitude = 0.1f;
+
     private Camera cam; //Referenca na kameru
     private float zoomVelocity;  // Interni parametar za SmoothDamp
+
+    private Vector3 originalPos;
+    private float shakeTimer = 0f;
+    private int lastHitCount = 0;
+
 
 
     private void Awake()
     {
         cam = GetComponent<Camera>();
+        targetScript = targetObject.GetComponent<MoveScript>(); // Referenca na objekt koji pratimo
+
 
         if (!cam.orthographic)
         {
@@ -34,14 +53,34 @@ public class CameraFollow : MonoBehaviour
 
     void Start()
     {
+        if (targetObject == null)
+        {
+            targetObject = GameObject.FindGameObjectWithTag("Player");
+            targetScript = targetObject.GetComponent<MoveScript>();
+        }
+
+
         UpdateCameraPosition(true);       // Init pozicija
         UpdateZoom(true);                 // Init zoom (instant)
+
     }
     void LateUpdate()
     {
+        HandlePlayrHit();
         UpdateCameraPosition();           // Prati x,y targeta
         UpdateZoom();                     // Podesi zoom prema brzini
+        HandleCameraShake();
     }
+
+    private void HandlePlayrHit()
+    {
+        if (lastHitCount != targetScript.brojUdaraca)
+        {
+            lastHitCount = targetScript.brojUdaraca;
+            shakeCamera = true; // Pokreće shake efekt
+        }
+    }
+
     //private void SetCameraPosition()
     //{
     //    if (targetObject != null)
@@ -101,6 +140,52 @@ public class CameraFollow : MonoBehaviour
                                                     ref zoomVelocity,
                                                     zoomSmoothTime);
         }
+
+
+
     }
 
+    void HandleCameraShake()
+    {
+        if (shakeCamera)
+        {
+            // Resetira bool kako bi se shake dogodio samo jednom
+            shakeCamera = false;
+
+            // Postavlja trajanje shake efekta na početnu vrijednost
+            shakeTimer = shakeDuration;
+
+            // Sprema trenutnu poziciju kamere kako bi se mogla vratiti nakon shake-a
+            originalPos = transform.position;
+        }
+
+        if (shakeTimer > 0)
+        {
+            // Generira nasumičan X pomak unutar raspona [-1, 1] * intenzitet
+            float offsetX = Random.Range(-1f, 1f) * shakeMagnitude;
+
+            // Generira nasumičan Y pomak unutar raspona [-1, 1] * intenzitet
+            float offsetY = Random.Range(-1f, 1f) * shakeMagnitude;
+
+            // Postavlja kameru na originalnu poziciju + nasumičan pomak
+            transform.position = new Vector3(
+                originalPos.x + offsetX,
+                originalPos.y + offsetY,
+                originalPos.z
+            );
+
+            // Odbrojava trajanje shake efekta
+            shakeTimer -= Time.deltaTime;
+
+            // Ako je shake završio, vrati kameru točno na originalnu poziciju
+            if (shakeTimer <= 0)
+            {
+                transform.position = originalPos;
+            }
+
+        }
+
+
+
+    }
 }
