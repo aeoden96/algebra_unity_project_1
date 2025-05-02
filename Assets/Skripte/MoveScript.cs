@@ -13,6 +13,13 @@ public class MoveScript : MonoBehaviour
     public float zdravlje = 100f;
     public bool dozvoliKretanje = true;
 
+    public float trenutnaRotBrzina = 0f;
+    public float maxRotacijskaBrzina = 150f;
+    public float ubrzanjeRotacije = 300f;
+    public float usporavanjeRotacije = 200f;
+    public float nagloUsporavanje = 25f;
+
+
     //Trenutna brzina kretanja vozila
     Vector2 trenutnaBrzina = Vector2.zero;
     public float maxismalnaBrzina = 5f;
@@ -22,8 +29,10 @@ public class MoveScript : MonoBehaviour
     public float akceleracija = 10f;
 
     Rigidbody2D rb;
-
     Stanje stanje = Stanje.Neaktivno;
+    float nagloTimer = 0f;
+
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -36,6 +45,12 @@ public class MoveScript : MonoBehaviour
         //Debug.Log($"Stanje: {DateTime.Now.ToString("dd.MM.yyyy HH.mm")}");
 
         stanje = Stanje.IzvrsavaSe;
+
+        if (nagloTimer > 0f)
+        {
+            nagloTimer -= Time.deltaTime;
+        }
+
 
         if (dozvoliKretanje)
         {
@@ -121,19 +136,79 @@ public class MoveScript : MonoBehaviour
         //}
         #endregion
     }
+
+
+
+
+
+
     void Rotiraj()
     {
-        if (Input.GetKey(KeyCode.KeypadPlus))
+        float ulaz = 0f;
+
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
-            //transform.Rotate(0f, 0f, -brzinaRotiranja);
-            transform.Rotate(0f, 0f, -brzinaRotiranja * Time.deltaTime);
+            ulaz += 1f;
+        }
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        {
+            ulaz -= 1f;
         }
 
+
+        #region Opcionalna rotacija
+        if (Input.GetKey(KeyCode.KeypadPlus))
+        {
+            ulaz += 1f;
+        }
         if (Input.GetKey(KeyCode.KeypadMinus))
         {
-            //transform.Rotate(0f, 0f, brzinaRotiranja);
-            transform.Rotate(0f, 0f, brzinaRotiranja * Time.deltaTime);
+            ulaz -= 1f;
         }
+
+        if (trenutnaBrzina.magnitude > 0.1f)
+        {
+
+            if (ulaz != 0)
+            {
+                //Postepeno ubrzavanje do ciljne brzine rotacije
+                trenutnaRotBrzina = Mathf.MoveTowards(trenutnaRotBrzina, ulaz * maxRotacijskaBrzina, ubrzanjeRotacije * Time.deltaTime);
+                Debug.Log($"Ubrzavam rotaciju: {ulaz} trenutnaRotBrzina {trenutnaRotBrzina}"); //Debug.Log($"Ubrzavam rotaciju: {usporavanjeRotacije}");
+            }
+
+            else
+            {                            //if (ulaz == 0)    //ono sta bi napisali       //ovo bi bio else
+                                         // u {}
+                float faktorUsporRot = (nagloTimer > 0f) ? usporavanjeRotacije * 2f : usporavanjeRotacije;
+                trenutnaRotBrzina = Mathf.MoveTowards(trenutnaRotBrzina, 0f, faktorUsporRot * Time.deltaTime);
+                Debug.Log($"Usporavam rotaciju: {faktorUsporRot} trenutnaRotBrzina {trenutnaRotBrzina}"); //Debug.Log($"Usporavam rotaciju: {usporavanjeRotacije}");
+            }
+
+            transform.Rotate(0f, 0f, trenutnaRotBrzina * Time.deltaTime);
+
+
+        }
+        else
+        {
+            trenutnaRotBrzina = 0f;
+        }
+
+        #endregion
+
+
+        #region Stara verzija rotacije
+        //if (Input.GetKey(KeyCode.KeypadPlus))
+        //{
+        //    //transform.Rotate(0f, 0f, -brzinaRotiranja);
+        //    transform.Rotate(0f, 0f, -brzinaRotiranja * Time.deltaTime);
+        //}
+
+        //if (Input.GetKey(KeyCode.KeypadMinus))
+        //{
+        //    //transform.Rotate(0f, 0f, brzinaRotiranja);
+        //    transform.Rotate(0f, 0f, brzinaRotiranja * Time.deltaTime);
+        //}
+        #endregion
     }
 
 
@@ -162,6 +237,7 @@ public class MoveScript : MonoBehaviour
         if (zdravlje <= 0)
         {
             dozvoliKretanje = false;
+            StartCoroutine(ZamrzniNakonOdbijanja(0.3f));
 
             //vrtiSeUKrug = true;
             Debug.Log("Totalka!");
@@ -173,7 +249,13 @@ public class MoveScript : MonoBehaviour
 
 
 
-
+    System.Collections.IEnumerator ZamrzniNakonOdbijanja(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+    }
 
 
 }
