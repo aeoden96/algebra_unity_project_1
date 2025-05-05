@@ -66,11 +66,19 @@ public class CameraFollow : MonoBehaviour
     }
     void LateUpdate()
     {
+
+
+        shakeCamera = targetScript.onGrass;
+
+
         HandlePlayrHit();
         UpdateCameraPosition();           // Prati x,y targeta
         UpdateZoom();                     // Podesi zoom prema brzini
         HandleCameraShake();
     }
+
+
+
 
     private void HandlePlayrHit()
     {

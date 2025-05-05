@@ -8,11 +8,17 @@ public class MoveScript : MonoBehaviour
     [SerializeField]
     float brzinaKretanja = 5f;
 
+  
+
+
+
     public float brzinaRotiranja = 100f;
     public bool vrtiSeUKrug = false;
     public float zdravlje = 100f;
     public bool dozvoliKretanje = true;
     public int brojUdaraca = 0;
+    public int playerPoints = 0;
+
 
 
     public float trenutnaRotBrzina = 0f;
@@ -20,7 +26,7 @@ public class MoveScript : MonoBehaviour
     public float ubrzanjeRotacije = 300f;
     public float usporavanjeRotacije = 200f;
     public float nagloUsporavanje = 25f;
-
+    public bool onGrass = false;
 
 
 
@@ -216,13 +222,60 @@ public class MoveScript : MonoBehaviour
     }
 
 
-    //void OnTriggerEnter2D(Collider2D collision)
-    //{
-    //    Debug.Log("Sudar!");
-    //    Debug.Log($"Sudario sam se s objektom: { collision.gameObject.name}");
-    //    //vrtiSeUKrug = !vrtiSeUKrug;
-    //    VoziUKrug(); 
-    //}
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+
+        switch (collision.tag)
+        {
+            case PointTags.GrassSection:
+                onGrass = false;
+                break;
+
+
+            default:
+                break;
+        }
+
+
+    }
+
+
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+
+
+
+        var tag = collision.gameObject.tag;
+
+
+        switch (tag)
+        {
+            case PointTags.PointCounterPad:
+                var pointPad = collision.gameObject.GetComponent<PointCounterManager>();
+                playerPoints += pointPad.PointValue;
+                pointPad.PointValue = 0;
+                Debug.Log("Sudar s PointCounterPad");
+                break;
+                
+            case PointTags.GrassSection:
+                onGrass = true;
+                break;
+
+            default:
+                break;
+        }
+
+
+
+
+
+        #region Stara verzija sudara
+        //Debug.Log("Sudar!");
+        //Debug.Log($"Sudario sam se s objektom: {collision.gameObject.name}");
+        //VoziUKrug();
+        #endregion
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
