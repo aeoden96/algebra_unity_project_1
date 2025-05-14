@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MoveScript : MonoBehaviour
@@ -8,7 +9,7 @@ public class MoveScript : MonoBehaviour
     [SerializeField]
     float brzinaKretanja = 5f;
 
-  
+
 
 
 
@@ -31,9 +32,9 @@ public class MoveScript : MonoBehaviour
 
 
     //Trenutna brzina kretanja vozila
-    Vector2 trenutnaBrzina = Vector2.zero;
+    public Vector2 trenutnaBrzina = Vector2.zero;
     public float maxismalnaBrzina = 5f;
-    //Brzina kojom se vozilo usporava kada se ne dr�i tipka
+    //Brzina kojom se vozilo usporava kada se ne drži tipka
     public float usporavanje = 5f;
     //brzina kojom se vozilo ubrzava prema maksimalnoj brzini
     public float akceleracija = 10f;
@@ -41,6 +42,17 @@ public class MoveScript : MonoBehaviour
     Rigidbody2D rb;
     Stanje stanje = Stanje.Neaktivno;
     float nagloTimer = 0f;
+    GameManagerScript gameManager;
+
+    void Awake()
+    {
+        //Debug.Log("Awake!");
+        gameManager = GameObject.FindGameObjectWithTag(UiTags.GameManager).GetComponent<GameManagerScript>();
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManager nije pronađen!");
+        }
+    }
 
 
     void Start()
@@ -119,7 +131,7 @@ public class MoveScript : MonoBehaviour
         }
         else
         {
-            //Ako se ne dr�i tipka/gas, usporavanje prema mirovanju
+            //Ako se ne drži tipka/gas, usporavanje prema mirovanju
             trenutnaBrzina = Vector2.MoveTowards(trenutnaBrzina, Vector2.zero, usporavanje * Time.deltaTime);
 
         }
@@ -183,7 +195,6 @@ public class MoveScript : MonoBehaviour
             {
                 //Postepeno ubrzavanje do ciljne brzine rotacije
                 trenutnaRotBrzina = Mathf.MoveTowards(trenutnaRotBrzina, ulaz * maxRotacijskaBrzina, ubrzanjeRotacije * Time.deltaTime);
-                Debug.Log($"Ubrzavam rotaciju: {ulaz} trenutnaRotBrzina {trenutnaRotBrzina}"); //Debug.Log($"Ubrzavam rotaciju: {usporavanjeRotacije}");
             }
 
             else
@@ -191,7 +202,6 @@ public class MoveScript : MonoBehaviour
                                          // u {}
                 float faktorUsporRot = (nagloTimer > 0f) ? usporavanjeRotacije * 2f : usporavanjeRotacije;
                 trenutnaRotBrzina = Mathf.MoveTowards(trenutnaRotBrzina, 0f, faktorUsporRot * Time.deltaTime);
-                Debug.Log($"Usporavam rotaciju: {faktorUsporRot} trenutnaRotBrzina {trenutnaRotBrzina}"); //Debug.Log($"Usporavam rotaciju: {usporavanjeRotacije}");
             }
 
             transform.Rotate(0f, 0f, trenutnaRotBrzina * Time.deltaTime);
@@ -203,7 +213,7 @@ public class MoveScript : MonoBehaviour
             trenutnaRotBrzina = 0f;
         }
 
-  
+
 
 
         #region Stara verzija rotacije
@@ -255,11 +265,13 @@ public class MoveScript : MonoBehaviour
                 var pointPad = collision.gameObject.GetComponent<PointCounterManager>();
                 playerPoints += pointPad.PointValue;
                 pointPad.PointValue = 0;
-                Debug.Log("Sudar s PointCounterPad");
                 break;
-                
+
             case PointTags.GrassSection:
                 onGrass = true;
+                break;
+            case PointTags.Finish:
+                gameManager.PlayerFinished();
                 break;
 
             default:
@@ -290,7 +302,7 @@ public class MoveScript : MonoBehaviour
         }
 
         zdravlje -= 10f * faktorStete;
-        brojUdaraca++; 
+        brojUdaraca++;
 
 
         if (zdravlje <= 0)

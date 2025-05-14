@@ -67,8 +67,16 @@ public class CameraFollow : MonoBehaviour
     void LateUpdate()
     {
 
+        if (targetScript.onGrass && targetScript.trenutnaBrzina.magnitude > 0.1f)
+        {
+            shakeCamera = true;
+        }
 
-        shakeCamera = targetScript.onGrass;
+        else
+        {
+            shakeCamera = false;
+        }
+
 
 
         HandlePlayrHit();

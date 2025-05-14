@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -9,13 +10,52 @@ public class GameManagerScript : MonoBehaviour
     public List<GameObject> NPCs;
     public float spawnInterval = 2f; // Svako toliko sekundi se spawnaju novo vozilo
     public List<GameObject> spawnPoints; //Mjesta na kojem se pojavljuju vozila
+    public GameObject panel; // Referenca na UI panel za editiranje
+    bool playerIsFinished = false;
 
 
 
+
+
+
+    private void Awake()
+    {
+        if (panel == null)
+        {
+            panel = GameObject.FindGameObjectWithTag(UiTags.MainPanel);
+        }
+
+        panel.SetActive(false); // Skriveno na početku
+    }
+
+    public void PlayerFinished()
+    {
+        playerIsFinished = true;
+    }
 
     void Start()
     {
         StartCoroutine(SpawnNPCs());
+    }
+
+    void LateUpdate()
+    {
+        if (playerIsFinished)
+        {
+            //StopAllCoroutines(); // Zaustavi sve korutine
+            panel.SetActive(true); // Prikaži UI panel
+        }
+    }
+
+
+    public void LoadNextLevel()
+    {
+        int level = 1;
+        int nextLevel = level++;
+
+        Debug.Log($"Učitavam sljedeći level: {nextLevel}");
+
+        SceneManager.LoadScene($"Level 2");
     }
 
 

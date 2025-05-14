@@ -6,6 +6,8 @@ TagManager:
   tags:
   - PointCounterPad
   - GrassSection
+  - MainPanel
+  - GameManager
   layers:
   - Default
   - TransparentFX
