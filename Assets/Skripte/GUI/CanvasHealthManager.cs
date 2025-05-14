@@ -6,7 +6,7 @@ public class CanvasHealthManager : MonoBehaviour
 
     public GameObject playerVehicle;
     private TextMeshProUGUI meshProUGUI;
-    private MoveScript moveScript;
+    private PlayerManager playerManager;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,7 +17,7 @@ public class CanvasHealthManager : MonoBehaviour
             return;
         }
 
-        moveScript = playerVehicle.GetComponent<MoveScript>();
+        playerManager = playerVehicle.GetComponent<PlayerManager>();
     }
 
     // Update is called once per frame
@@ -28,9 +28,9 @@ public class CanvasHealthManager : MonoBehaviour
             return;
         }
 
-        if (moveScript.dozvoliKretanje)
+        if (playerManager.dozvoliKretanje)
         {
-            meshProUGUI.text = $"Health: {moveScript.zdravlje}";
+            meshProUGUI.text = $"Health: {playerManager.health}";
             return;
         }
 

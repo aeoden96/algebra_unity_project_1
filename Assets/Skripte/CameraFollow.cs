@@ -3,7 +3,7 @@
 public class CameraFollow : MonoBehaviour
 {
     public GameObject targetObject; // Objekt koji pratimo
-    private MoveScript targetScript; // Referenca na MoveScript
+    private PlayerManager targetScript; // Referenca na MoveScript
 
 
 
@@ -40,7 +40,7 @@ public class CameraFollow : MonoBehaviour
     private void Awake()
     {
         cam = GetComponent<Camera>();
-        targetScript = targetObject.GetComponent<MoveScript>(); // Referenca na objekt koji pratimo
+        targetScript = targetObject.GetComponent<PlayerManager>(); // Referenca na objekt koji pratimo
 
 
         if (!cam.orthographic)
@@ -56,7 +56,7 @@ public class CameraFollow : MonoBehaviour
         if (targetObject == null)
         {
             targetObject = GameObject.FindGameObjectWithTag("Player");
-            targetScript = targetObject.GetComponent<MoveScript>();
+            targetScript = targetObject.GetComponent<PlayerManager>();
         }
 
 

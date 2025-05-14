@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 public class GameManagerScript : MonoBehaviour
@@ -12,7 +13,7 @@ public class GameManagerScript : MonoBehaviour
     public List<GameObject> spawnPoints; //Mjesta na kojem se pojavljuju vozila
     public GameObject panel; // Referenca na UI panel za editiranje
     bool playerIsFinished = false;
-
+    bool playerIsDead = false; // Da li je igrač mrtav
 
 
 
@@ -33,6 +34,13 @@ public class GameManagerScript : MonoBehaviour
         playerIsFinished = true;
     }
 
+    public void PlayerDead()
+    {
+        playerIsDead = true;
+    }
+
+
+
     void Start()
     {
         StartCoroutine(SpawnNPCs());
@@ -40,7 +48,7 @@ public class GameManagerScript : MonoBehaviour
 
     void LateUpdate()
     {
-        if (playerIsFinished)
+        if (playerIsFinished || playerIsDead)
         {
             //StopAllCoroutines(); // Zaustavi sve korutine
             panel.SetActive(true); // Prikaži UI panel
@@ -50,12 +58,13 @@ public class GameManagerScript : MonoBehaviour
 
     public void LoadNextLevel()
     {
-        int level = 1;
-        int nextLevel = level++;
-
-        Debug.Log($"Učitavam sljedeći level: {nextLevel}");
-
-        SceneManager.LoadScene($"Level 2");
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextIndex = currentIndex + 1;
+        if (nextIndex >= SceneManager.sceneCountInBuildSettings)
+        {
+            nextIndex = 0;
+        }
+        SceneManager.LoadScene(nextIndex);
     }
 
 
