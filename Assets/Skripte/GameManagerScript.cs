@@ -8,18 +8,17 @@ using UnityEngine.UI;
 
 public class GameManagerScript : MonoBehaviour
 {
-
     public List<GameObject> NPCs;
-    public float spawnInterval = 2f; // Svako toliko sekundi se spawnaju novo vozilo
-    public List<GameObject> spawnPoints; //Mjesta na kojem se pojavljuju vozila
-    public GameObject panel; // Referenca na UI panel za editiranje
+    public float spawnInterval = 2f;
+    public List<GameObject> spawnPoints = null;
+    public GameObject panel;
+
     bool playerIsFinished = false;
-    bool playerIsDead = false; // Da li je igrač mrtav
+    bool playerIsDead = false;
 
-    public TextMeshProUGUI panelText;
+    private TextMeshProUGUI panelText;
     private Image panelImage;
-    public TextMeshProUGUI buttonText;
-
+    private TextMeshProUGUI buttonText;
 
     private void Awake()
     {
@@ -28,51 +27,29 @@ public class GameManagerScript : MonoBehaviour
             panel = GameObject.FindGameObjectWithTag(UiTags.MainPanel);
         }
 
-        panel.SetActive(false); // Skriveno na početku
-        panelText = panel.GetComponentInChildren<TextMeshProUGUI>();
-        panelImage = panel.GetComponentInChildren<Image>();
-        buttonText = panel.transform.Find("NavigationBtn/Text (TMP)").GetComponent<TextMeshProUGUI>();
+        if (panel == null)
+        {
+            return;
+        }
 
+        panel.SetActive(false);
+
+        panelText = panel.transform.Find("Main Text").GetComponent<TextMeshProUGUI>();
+        panelImage = panel.GetComponent<Image>();
+        buttonText = panel.transform.Find("NavigationBtn/Text (TMP)").GetComponent<TextMeshProUGUI>();
 
         if (panelText != null)
         {
-            RectTransform textReac = panelText.GetComponent<RectTransform>();
-            textReac.anchorMin = new Vector2(0.5f, 1f);
-            textReac.anchorMax = new Vector2(0.5f, 1f);
-            textReac.pivot = new Vector2(0.5f, 1f);
-            textReac.anchoredPosition = new Vector2(0, -40);
-            textReac.sizeDelta = new Vector2(600, 60);
-
+            RectTransform textRect = panelText.GetComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0.5f, 1f);
+            textRect.anchorMax = new Vector2(0.5f, 1f);
+            textRect.pivot = new Vector2(0.5f, 1f);
+            textRect.anchoredPosition = new Vector2(0, -40);
+            textRect.sizeDelta = new Vector2(600, 60);
             panelText.enableWordWrapping = false;
             panelText.alignment = TextAlignmentOptions.Center;
         }
-
-
     }
-
-    void ActivatePanelScreen(string msg, Color txtColor, Color bcgColor, string buttonLabel)
-    {
-        panel.SetActive(true);
-
-        if (panelImage != null)
-        {
-            panelImage.color = bcgColor;
-        }
-        if (panelText != null)
-        {
-            panelText.text = msg;
-            panelText.color = txtColor;
-
-        }
-
-        if (buttonText != null)
-        {
-            buttonText.text = buttonLabel;
-
-        }
-
-    }
-
 
     public void PlayerFinished()
     {
@@ -84,10 +61,15 @@ public class GameManagerScript : MonoBehaviour
         playerIsDead = true;
     }
 
-
-
     void Start()
     {
+        if(spawnPoints == null || !spawnPoints.Where(y=>y != null).Any())
+        {
+            return;
+        }
+
+
+
         StartCoroutine(SpawnNPCs());
     }
 
@@ -95,19 +77,39 @@ public class GameManagerScript : MonoBehaviour
     {
         if (playerIsFinished || playerIsDead)
         {
+            panel.SetActive(true);
+
             if (playerIsDead)
             {
-                ActivatePanelScreen("You are dead!", Color.white, Color.red, "Try Again");
+                ActivatePanelScreen("You are dead", Color.red, Color.black, "Try Again");
             }
 
             if (playerIsFinished)
             {
-                ActivatePanelScreen("You are won!", Color.white, Color.green, "Next Level");
+                ActivatePanelScreen("You are finished", Color.green, Color.black, "Next Level");
             }
-
-
-
         }
+    }
+
+    private void ActivatePanelScreen(string msg, Color backgourndText, Color textColor, string buttonLabel)
+    {
+        if (panelImage != null) panelImage.color = backgourndText;
+
+        if (panelText != null)
+        {
+            panelText.text = msg;
+            panelText.color = textColor;
+        }
+
+        if (buttonText != null)
+        {
+            buttonText.text = buttonLabel;
+        }
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene(Scenes.MainMenu);
     }
 
 
@@ -115,26 +117,18 @@ public class GameManagerScript : MonoBehaviour
     {
         if (playerIsDead)
         {
-            SceneManager.LoadScene(0);
+            SceneManager.LoadScene(Scenes.Lvl1);
+            return;
         }
 
-        if (playerIsFinished)
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextIndex = currentIndex + 1;
+        if (nextIndex >= SceneManager.sceneCountInBuildSettings)
         {
-            int currentIndex = SceneManager.GetActiveScene().buildIndex;
-            int nextIndex = currentIndex + 1;
-            if (nextIndex >= SceneManager.sceneCountInBuildSettings)
-            {
-                nextIndex = 0;
-            }
-            SceneManager.LoadScene(nextIndex);
+            nextIndex = 0;
         }
-
-
-
-
-
+        SceneManager.LoadScene(nextIndex);
     }
-
 
     IEnumerator SpawnNPCs()
     {
@@ -144,7 +138,6 @@ public class GameManagerScript : MonoBehaviour
             yield return new WaitForSeconds(spawnInterval);
         }
     }
-
 
     void SpawnRandomNPC()
     {
@@ -160,22 +153,14 @@ public class GameManagerScript : MonoBehaviour
             return;
         }
 
-
         foreach (var spawnPoint in spawnPoints)
         {
-
-            //odabiramo nasumični index iz liste NPC-ova
             int index = Random.Range(0, NPCs.Count);
-            //odaberamo NPC iz liste na rednom broju "index"
             GameObject selectedNpc = NPCs[index];
-            var directionFlow = spawnPoint.GetComponent<NPCStarPositionManager>().directionFlow; // Dobijamo smjer kretanja iz spawn pointa
+            var directionFlow = spawnPoint.GetComponent<NPCStarPositionManager>().directionFlow;
 
-            //Instantiramo NPC na spawn pointu
             GameObject npcInstance = Instantiate(selectedNpc, spawnPoint.transform.position, Quaternion.identity);
-
-            npcInstance.AddComponent<NPCMoveScript>().directionFlow = directionFlow; // Dodajemo komponentu za pomicanje prema gore
+            npcInstance.AddComponent<NPCMoveScript>().directionFlow = directionFlow;
         }
-
-
     }
 }

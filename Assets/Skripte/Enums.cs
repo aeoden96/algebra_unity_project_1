@@ -6,6 +6,9 @@ public enum DirectionFlow
     Right
 }
 
+
+
+
 public static class PointTags
 {
     public const string PointCounterPad = "PointCounterPad";
@@ -13,6 +16,14 @@ public static class PointTags
     public const string Finish = "Finish";
 }
 
+
+
+public static class Scenes
+{
+    public const int MainMenu = 0;
+    public const int Lvl1 = 1;
+    public const int Lvl2 = 2;
+}
 
 public static class UiTags
 {
