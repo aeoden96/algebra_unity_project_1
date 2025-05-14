@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -15,8 +16,9 @@ public class GameManagerScript : MonoBehaviour
     bool playerIsFinished = false;
     bool playerIsDead = false; // Da li je igrač mrtav
 
-
-
+    public TextMeshProUGUI panelText;
+    private Image panelImage;
+    public TextMeshProUGUI buttonText;
 
 
     private void Awake()
@@ -27,7 +29,50 @@ public class GameManagerScript : MonoBehaviour
         }
 
         panel.SetActive(false); // Skriveno na početku
+        panelText = panel.GetComponentInChildren<TextMeshProUGUI>();
+        panelImage = panel.GetComponentInChildren<Image>();
+        buttonText = panel.transform.Find("NavigationBtn/Text (TMP)").GetComponent<TextMeshProUGUI>();
+
+
+        if (panelText != null)
+        {
+            RectTransform textReac = panelText.GetComponent<RectTransform>();
+            textReac.anchorMin = new Vector2(0.5f, 1f);
+            textReac.anchorMax = new Vector2(0.5f, 1f);
+            textReac.pivot = new Vector2(0.5f, 1f);
+            textReac.anchoredPosition = new Vector2(0, -40);
+            textReac.sizeDelta = new Vector2(600, 60);
+
+            panelText.enableWordWrapping = false;
+            panelText.alignment = TextAlignmentOptions.Center;
+        }
+
+
     }
+
+    void ActivatePanelScreen(string msg, Color txtColor, Color bcgColor, string buttonLabel)
+    {
+        panel.SetActive(true);
+
+        if (panelImage != null)
+        {
+            panelImage.color = bcgColor;
+        }
+        if (panelText != null)
+        {
+            panelText.text = msg;
+            panelText.color = txtColor;
+
+        }
+
+        if (buttonText != null)
+        {
+            buttonText.text = buttonLabel;
+
+        }
+
+    }
+
 
     public void PlayerFinished()
     {
@@ -50,21 +95,44 @@ public class GameManagerScript : MonoBehaviour
     {
         if (playerIsFinished || playerIsDead)
         {
-            //StopAllCoroutines(); // Zaustavi sve korutine
-            panel.SetActive(true); // Prikaži UI panel
+            if (playerIsDead)
+            {
+                ActivatePanelScreen("You are dead!", Color.white, Color.red, "Try Again");
+            }
+
+            if (playerIsFinished)
+            {
+                ActivatePanelScreen("You are won!", Color.white, Color.green, "Next Level");
+            }
+
+
+
         }
     }
 
 
-    public void LoadNextLevel()
+    public void LoadLevel()
     {
-        int currentIndex = SceneManager.GetActiveScene().buildIndex;
-        int nextIndex = currentIndex + 1;
-        if (nextIndex >= SceneManager.sceneCountInBuildSettings)
+        if (playerIsDead)
         {
-            nextIndex = 0;
+            SceneManager.LoadScene(0);
         }
-        SceneManager.LoadScene(nextIndex);
+
+        if (playerIsFinished)
+        {
+            int currentIndex = SceneManager.GetActiveScene().buildIndex;
+            int nextIndex = currentIndex + 1;
+            if (nextIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                nextIndex = 0;
+            }
+            SceneManager.LoadScene(nextIndex);
+        }
+
+
+
+
+
     }
 
 
