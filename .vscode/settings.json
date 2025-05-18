@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "algebra_unity_project_1.sln"
+    "dotnet.defaultSolution": "algebra_project_1.sln"
 }

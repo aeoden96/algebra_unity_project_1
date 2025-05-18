@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static Helpers;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -20,6 +21,19 @@ public class GameManagerScript : MonoBehaviour
     private Image panelImage;
     private TextMeshProUGUI buttonText;
 
+    private void PositionPanel(GameObject panel)
+    {
+        // Status text
+        panelText = panel.transform.Find("Main Text").GetComponent<TextMeshProUGUI>();
+        DefineTextRect(panelText);
+
+        // Panel background
+        panelImage = panel.GetComponent<Image>();
+
+        // Navigation button
+        buttonText = panel.transform.Find("NavigationBtn/Text (TMP)").GetComponent<TextMeshProUGUI>();
+    }
+
     private void Awake()
     {
         if (panel == null)
@@ -33,22 +47,7 @@ public class GameManagerScript : MonoBehaviour
         }
 
         panel.SetActive(false);
-
-        panelText = panel.transform.Find("Main Text").GetComponent<TextMeshProUGUI>();
-        panelImage = panel.GetComponent<Image>();
-        buttonText = panel.transform.Find("NavigationBtn/Text (TMP)").GetComponent<TextMeshProUGUI>();
-
-        if (panelText != null)
-        {
-            RectTransform textRect = panelText.GetComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0.5f, 1f);
-            textRect.anchorMax = new Vector2(0.5f, 1f);
-            textRect.pivot = new Vector2(0.5f, 1f);
-            textRect.anchoredPosition = new Vector2(0, -40);
-            textRect.sizeDelta = new Vector2(600, 60);
-            panelText.enableWordWrapping = false;
-            panelText.alignment = TextAlignmentOptions.Center;
-        }
+        PositionPanel(panel);
     }
 
     public void PlayerFinished()
@@ -63,12 +62,10 @@ public class GameManagerScript : MonoBehaviour
 
     void Start()
     {
-        if(spawnPoints == null || !spawnPoints.Where(y=>y != null).Any())
+        if (spawnPoints == null || !spawnPoints.Where(y => y != null).Any())
         {
             return;
         }
-
-
 
         StartCoroutine(SpawnNPCs());
     }
@@ -86,7 +83,7 @@ public class GameManagerScript : MonoBehaviour
 
             if (playerIsFinished)
             {
-                ActivatePanelScreen("You are finished", Color.green, Color.black, "Next Level");
+                ActivatePanelScreen("You are finished", Color.green, Color.black, $"Go to level {NextLevelLabel()}");
             }
         }
     }
@@ -112,22 +109,46 @@ public class GameManagerScript : MonoBehaviour
         SceneManager.LoadScene(Scenes.MainMenu);
     }
 
+    private int NextLevelIndex()
+    {
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+
+        if (currentIndex < Scenes.FirstLevel)
+        {
+            return Scenes.FirstLevel;
+        }
+
+
+        int numberOfLevels = Scenes.LastLevel - Scenes.FirstLevel + 1;
+
+        // Only assumption is that the levels are in order & sequential
+        int nextIndex = (currentIndex - Scenes.FirstLevel + 1) % numberOfLevels + Scenes.FirstLevel;
+
+        return nextIndex;
+    }
+
+    private int NextLevelLabel()
+    {
+        return NextLevelIndex() - Scenes.FirstLevel + 1;
+    }
+
 
     public void LoadLevel()
     {
+
         if (playerIsDead)
         {
-            SceneManager.LoadScene(Scenes.Lvl1);
+            SceneManager.LoadScene(Scenes.FirstLevel);
             return;
         }
 
-        int currentIndex = SceneManager.GetActiveScene().buildIndex;
-        int nextIndex = currentIndex + 1;
-        if (nextIndex >= SceneManager.sceneCountInBuildSettings)
-        {
-            nextIndex = 0;
-        }
-        SceneManager.LoadScene(nextIndex);
+        SceneManager.LoadScene(NextLevelIndex());
+    }
+
+    public void LoadLevelSelect()
+    {
+        SceneManager.LoadScene(Scenes.LevelSelect);
+
     }
 
     IEnumerator SpawnNPCs()
